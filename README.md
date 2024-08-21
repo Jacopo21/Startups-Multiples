@@ -3,7 +3,7 @@ Little but hopefully successful attempt to forecast success of a start-up given 
 
 The dataset is composed of the following variables: 
 - 'Organization Name',
-- 'Organization Name URL',
+- 'Organization Name URL', -> to be dropped
 - 'Growth Category',
 - 'IPO Status',
 - 'Company Type', 
@@ -14,7 +14,7 @@ The dataset is composed of the following variables:
 - 'Last Funding Date',
 - 'Industries',
 - 'Headquarters Location',
-- 'Description',
+- 'Description', -> to be dropped
 - 'CB Rank (Company)',
 - 'Investor Type',
 - 'Founded Date',
