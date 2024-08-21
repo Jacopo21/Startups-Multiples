@@ -2,12 +2,12 @@
 Little but hopefully successful attempt to forecast success of a start-up given a comprehensive dataset gathered from Crunchbase
 
 The dataset is composed of the following variables: 
-'Organization Name',
-'Organization Name URL',
-'Growth Category',
-'IPO Status',
-'Company Type', 
-'Website',
+- 'Organization Name',
+- 'Organization Name URL',
+- 'Growth Category',
+- 'IPO Status',
+- 'Company Type', 
+- 'Website', -> to be dropped
 'Number of Employees',
 'Acquisition Status',
 'Last Funding Type',
