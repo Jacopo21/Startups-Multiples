@@ -3,28 +3,29 @@
 This repository contains a simplified Python script that replaces the GUI components of the original code with a terminal-based interface. The script allows users to input data efficiently, particularly for categorical variables like industries represented by dummy variables.
 
 ## Table of Contents
-Overview
-Key Features
-Prerequisites
-Installation
-Usage
-Running the Script
-Providing Inputs
-Example Interaction
-Code Explanation
-Imports and Environment Setup
-Data Loading and Preprocessing
-Model Building and Training
-Saving and Loading Models
-Input Functions for Prediction
-Main Execution Loop
-Extending the Script
-Adding More Categorical Variables
-Adjusting for Column Naming Conventions
-Error Handling
-Conclusion
-License
-Overview
+- Overview
+- Key Features
+- Prerequisites
+- Installation
+- Usage
+- Running the Script
+- Providing Inputs
+- Example Interaction
+- Code Explanation
+- Imports and Environment Setup
+- Data Loading and Preprocessing
+- Model Building and Training
+- Saving and Loading Models
+- Input Functions for Prediction
+- Main Execution Loop
+- Extending the Script
+- Adding More Categorical Variables
+- Adjusting for Column Naming Conventions
+- Error Handling
+- Conclusion
+- License
+
+## Overview
 
 The original script included GUI components using tkinter to collect user inputs and display predictions. This updated script removes these GUI elements and introduces a terminal-based input system. Users can now provide inputs for prediction directly through the terminal, streamlining the process, especially for categorical variables represented by dummy variables.
 
@@ -71,8 +72,9 @@ df = pd.read_excel("/path/to/learning_dataset.xlsx")
 Run the Script:
 
 bash
-Copia codice
+```python
 python model_training.py
+```
 
 Providing Inputs
 Categorical Variables:
@@ -83,7 +85,6 @@ Enter the value when prompted.
 Press Enter without typing anything to use the mean value.
 Example Interaction
 vbnet
-Copia codice
 Provide input for each feature (or press Enter to use mean value):
 
 Select Industry from the list:
@@ -98,6 +99,7 @@ Employees: 200
 Predicted Normalized Valuation: 2.35
 
 Do you want to make another prediction? (y/n): n
+
 ## Code Explanation
 Imports and Environment Setup
 ```python
@@ -164,8 +166,7 @@ Data Splitting: Splits data into training and testing sets.
 Scaling: Uses StandardScaler for feature scaling.
 Feature Means: Calculates mean values for imputation.
 Model Building and Training
-python
-Copia codice
+```python
 def build_and_train_model(X_train_scaled, y_train):
     model = Sequential([
         Dense(128, input_dim=X_train_scaled.shape[1], activation='relu'),
@@ -217,13 +218,14 @@ feature_means = joblib.load('feature_means.save')
 
 # Load the column names (features)
 feature_columns = feature_means.index.tolist()
+```
+
 Saving: Stores the trained model, scaler, and feature means for future use.
 Loading: Retrieves the saved components when needed.
 Feature Columns: Extracts the list of feature names.
-Input Functions for Prediction
+### Input Functions for Prediction
 Preprocessing and Prediction Functions
-python
-Copia codice
+```python
 def preprocess_input(input_data):
     input_df = pd.DataFrame([input_data])
     input_scaled = scaler.transform(input_df)
@@ -234,9 +236,10 @@ def predict(input_data):
     prediction = model.predict(preprocessed_data)
     return prediction[0][0]
 ```
-preprocess_input: Converts input data into a DataFrame and scales it using the loaded scaler.
-predict: Uses the model to make a prediction on the preprocessed data.
-User Input Function
+#### preprocess_input: Converts input data into a DataFrame and scales it using the loaded scaler.
+#### predict: Uses the model to make a prediction on the preprocessed data.
+
+## User Input Function
 ```python
 def input_for_prediction():
     input_data = {}
@@ -291,7 +294,7 @@ Sets the selected dummy variable to 1.0 and others to 0.0.
 Numerical Feature Input:
 Prompts the user for each numerical feature.
 Uses the mean value if the user presses Enter without input.
-Error Handling:
+## Error Handling:
 Defaults to mean values for invalid inputs.
 Main Execution Loop
 ```python
@@ -336,5 +339,5 @@ The script currently doesn't handle this exception; you can add error handling i
 Conclusion
 By removing GUI components and implementing a terminal-based input system, the script becomes more accessible and easier to use, especially for users who prefer or require command-line interfaces. The streamlined process for entering categorical variables enhances user experience and reduces the likelihood of input errors.
 
-License
+## License
 This project is licensed under the MIT License.
