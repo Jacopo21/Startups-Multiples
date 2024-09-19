@@ -1,0 +1,15 @@
+graph TB
+    I[Input Layer] --> D1[Dense 128 ReLU]
+    D1 --> DO1[Dropout 0.3]
+    DO1 --> D2[Dense 64 ReLU]
+    D2 --> DO2[Dropout 0.2]
+    D2 --> D3[Dense 32 ReLU]
+    D3 --> O[Output Layer]
+
+    style I fill:#f9f,stroke:#333,stroke-width:4px
+    style D1 fill:#ccf,stroke:#f66,stroke-width:2px
+    style D2 fill:#ccf,stroke:#f66,stroke-width:2px
+    style D3 fill:#ccf,stroke:#f66,stroke-width:2px
+    style DO1 fill:#cfc,stroke:#6f6,stroke-width:2px
+    style DO2 fill:#cfc,stroke:#6f6,stroke-width:2px
+    style O fill:#f9f,stroke:#333,stroke-width:4px
