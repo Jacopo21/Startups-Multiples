@@ -51,8 +51,8 @@ Clone the Repository:
 
 bash
 ```python
-git clone https://github.com/yourusername/your-repo-name.git
-cd your-repo-name
+git clone https://github.com/Jacopo21/Startups-Multiples.git
+cd Multiples
 ```
 Install Dependencies:
 Make sure you have pip installed.
@@ -63,18 +63,8 @@ pip install numpy pandas scikit-learn tensorflow joblib openpyxl
 Usage
 Running the Script
 Update Dataset Path:
-Replace the placeholder path in the script with the actual path to your dataset.
+Replace the placeholder path in the script with the actual path to the dataset.
 
-python
-```python
-df = pd.read_excel("/path/to/learning_dataset.xlsx")
-```
-Run the Script:
-
-bash
-```python
-python model_training.py
-```
 
 Providing Inputs
 Categorical Variables:
@@ -122,10 +112,6 @@ scikit-learn: For preprocessing and model evaluation.
 tensorflow.keras: For building the neural network.
 joblib: For saving and loading the scaler and feature means.
 Suppressing Warnings: Sets environment variables to reduce unnecessary warnings.
-Data Loading and Preprocessing
-```python
-Load the dataset
-df = pd.read_excel("/path/to/learning_dataset.xlsx")
 
 # Separate features and target variable
 X = df.drop('normalized_valuation', axis=1)
@@ -228,13 +214,48 @@ Preprocessing and Prediction Functions
 ```python
 def preprocess_input(input_data):
     input_df = pd.DataFrame([input_data])
-    input_scaled = scaler.transform(input_df)
+    
+    for col in X.columns:
+        if col not in input_df.columns:
+            if col in feature_means:
+                input_df[col] = feature_means[col]
+            else:
+                input_df[col] = 0  
+    
+    input_df = input_df[X.columns] 
+    input_scaled = scaler.transform(input_df) 
+    
     return input_scaled
 
 def predict(input_data):
+    if 'Total Funding Amount (in USD)' not in input_data:
+        print("Warning: Feature 'Total Funding Amount (in USD)' is missing. Using mean value.")
+        input_data['Total Funding Amount (in USD)'] = feature_means['Total Funding Amount (in USD)']
+    
+    # 
     preprocessed_data = preprocess_input(input_data)
-    prediction = model.predict(preprocessed_data)
-    return prediction[0][0]
+    
+    # 
+    raw_prediction = model.predict(preprocessed_data)[0][0]
+    
+    # 
+    if 'normalized_valuation' in feature_mins and 'normalized_valuation' in feature_maxs:
+        min_val = feature_mins['normalized_valuation']
+        max_val = feature_maxs['normalized_valuation']
+        
+        # 
+        denormalized_prediction = raw_prediction * (max_val - min_val) + min_val
+        
+        print(f"Normalized Predicted Valuation: {raw_prediction:.6f}")
+        print(f"Denormalized Predicted Valuation: ${denormalized_prediction:,.2f}")
+    else:
+        # Fallback behavior in case 'normalized_valuation' is missing
+        print("Warning: 'normalized_valuation' not found in feature_mins or feature_maxs. Using raw prediction.")
+        denormalized_prediction = raw_prediction
+        
+        print(f"Raw Predicted Valuation (no denormalization applied): {raw_prediction:.6f}")
+    
+    return denormalized_prediction
 ```
 #### preprocess_input: Converts input data into a DataFrame and scales it using the loaded scaler.
 #### predict: Uses the model to make a prediction on the preprocessed data.
@@ -301,43 +322,20 @@ Main Execution Loop
 if __name__ == "__main__":
     while True:
         input_data = input_for_prediction()
-        prediction = predict(input_data)
-        print(f"\nPredicted Normalized Valuation: {prediction:.2f}\n")
+        print("\nYour input data for prediction:")
+        print(input_data)
         
-        another = input("Do you want to make another prediction? (y/n): ")
-        if another.lower() != 'y':
+        input_data = compute_variables(input_data, df)
+        print("\nComputed variables:")
+        print(input_data)
+        
+        proceed = input("\nDo you want to input another set of data? (y/n): ").strip().lower()
+        if proceed != 'y':
+            print("Exiting the input session.")
             break
 ```
 Loop: Allows the user to make multiple predictions in one session.
 Termination: Exits the loop when the user inputs anything other than 'y'.
-Extending the Script
-Adding More Categorical Variables
-If your dataset includes other categorical variables represented by dummy variables, you can add them to the categorical_variables dictionary.
-
-```python
-categorical_variables = {
-    'Industry': [col for col in X.columns if col.startswith('Industry_')],
-    'Region': [col for col in X.columns if col.startswith('Region_')],
-    # Add more categories as needed
-}
-```
-Adjusting for Column Naming Conventions
-Ensure that the prefixes used in startswith() match the actual column names in your dataset.
-
-```python
-# If your columns are like 'Sector_Technology', update accordingly
-categorical_variables = {
-    'Sector': [col for col in X.columns if col.startswith('Sector_')],
-}
-```
-Error Handling
-Invalid Categorical Selections:
-If an invalid number is entered, the script defaults to using mean values for that category.
-Non-numeric Inputs:
-For numerical features, entering a non-numeric value will cause an error.
-The script currently doesn't handle this exception; you can add error handling if needed.
-Conclusion
-By removing GUI components and implementing a terminal-based input system, the script becomes more accessible and easier to use, especially for users who prefer or require command-line interfaces. The streamlined process for entering categorical variables enhances user experience and reduces the likelihood of input errors.
 
 ## License
 This project is licensed under the MIT License.
