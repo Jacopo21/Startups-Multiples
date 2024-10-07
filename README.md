@@ -52,7 +52,7 @@ Clone the Repository:
 bash
 ```python
 git clone https://github.com/Jacopo21/Startups-Multiples.git
-cd Multiples
+cd Startups-Multiples
 ```
 Install Dependencies:
 Make sure you have pip installed.
