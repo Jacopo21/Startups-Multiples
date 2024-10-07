@@ -2,28 +2,16 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-dataset = pd.read_csv("/Users/jacopobinati/Desktop/damo_DeepLNeural256/raw files/multiples/multiples_combined.csv")
+dataset = pd.read_csv(r"C:\Users\JacopoBinati\OneDrive - Venionaire Capital\Desktop\crunchbase\raw files\multiples\multiples_combined.csv")
 dataset = dataset[dataset["Operating Status"] != "Closed"]
 dataset["Last Equity Funding Amount (in USD)"] = dataset["Last Equity Funding Amount (in USD)"].fillna(0)
 dataset["Last Funding Amount (in USD)"] = dataset["Last Funding Amount (in USD)"].fillna(0)
 dataset["Total Funding Amount (in USD)"] = dataset["Total Funding Amount (in USD)"].fillna(0)
 dataset["Total Equity Funding Amount (in USD)"] = dataset["Total Equity Funding Amount (in USD)"].fillna(0)
+dataset["Number of Investments"] = dataset["Number of Investments"].fillna(0)
 dataset["Company Type"] = dataset["Company Type"].fillna("For Profit")
 
-columns_todrop = [
-    "Growth Confidence",
-    "Actively Hiring",
-    "Investment Stage",
-    "Funding Status",
-    "Most Recent Valuation Range",
-    "Number of Investments",
-    "Last Funding Amount Currency",
-    "Investor Type",
-    "Acquisition Status",
-    "Growth Category",
-    "Organization Name URL"
-]
-dataset = dataset.drop(columns=columns_todrop)
+
 dataset = dataset.dropna(subset=["Number of Founders"])
 dataset = dataset.dropna(subset=["Top 5 Investors"])
 dataset = dataset.dropna(subset=["Number of Investors"])
@@ -33,6 +21,7 @@ dataset = dataset.dropna(subset=["Industry Groups"])
 dataset = dataset.dropna(subset=["Founded Date"])
 dataset = dataset.dropna(subset=["Last Funding Date"])
 dataset = dataset.dropna(subset=["Last Funding Type"])
+
 
 dataset["Number of Investors"].astype(int)
 dataset["Number of Founders"].astype(int)
@@ -283,14 +272,39 @@ unique_headquarters = dataset["Macro Region"].unique()
 unique_headquarters_df = pd.DataFrame(unique_headquarters, columns=["Headquarters Regions"])
 unique_headquarters_df
 
+# MERGING WITH DAMODARAN DATA
+damodaran_MACRO = pd.read_excel(r"C:\Users\JacopoBinati\OneDrive - Venionaire Capital\Desktop\crunchbase\AGGREGATE_DAMO.xlsx")
+dataset = pd.merge(dataset, damodaran_MACRO, on=["Industry Name", "Macro Region"], how="left")
+
 # FINANCIAL VARIABLES
 dataset["Last Funding Type"].unique()
 last_equity_funding_type_dummies = pd.get_dummies(dataset["Last Funding Type"], prefix="LastFundingType_")
 dataset = pd.concat([dataset, last_equity_funding_type_dummies], axis=1)
 
-# MERGING WITH DAMODARAN DATA
-damodaran_MACRO = pd.read_excel("/Users/jacopobinati/Desktop/damo_DeepLNeural256/dataset/AGGREGATE_DAMO.xlsx")
-analysis2 = pd.merge(dataset, damodaran_MACRO, on=["Industry Name", "Macro Region"], how="left")
+# FILLING MISSING VALUES WITH LINEAR INTERPOLATION
+columns_with_missing_values = [
+    "Aggregate Mkt Cap/ Trailing Net Income (only money making firms)",
+    "Trailing PE",
+    "PBV",
+    "ROE",
+    "EV/EBITDAR&D",
+    "EV/EBITDA",
+    "Expected growth - next 5 years",
+    "Aggregate Mkt Cap/ Net Income (all firms)",
+    "EV/EBITDAR&D",
+    "EV/EBITDA3",
+    "EV/EBIT",
+    "EV/EBIT (1-t)",
+    "EV/EBIT4",
+    "PEG Ratio",
+    "EV/EBIT (1-t)5"
+]
+
+for column in columns_with_missing_values:
+    dataset[column] = dataset[column].interpolate(method='linear', limit_direction='forward')
+
+
+analysis2 = dataset.copy()
 
 # NORMALIZED VARIABLES AND NORMALIZED VALUATION
 columns_to_normalize = [
@@ -310,7 +324,14 @@ analysis2["Norm Expected growth 5 years"] = scaler.fit_transform(analysis2[["Exp
 analysis2["Norm Forward PE"] = scaler.fit_transform(analysis2[["Forward PE"]])
 analysis2["Norm % of Money Losing firms (Trailing)"] = scaler.fit_transform(analysis2[["% of Money Losing firms (Trailing)"]])
 
-    # Define weights for the normalized columns
+
+variables_to_normalize = ['Price/Sales', 'Net Margin', 'Pre-tax Operating Margin', 'PBV', 'EV/ Invested Capital', 'ROIC', 'EV/EBITDAR&D', 'EV/EBITDA', 'EV/EBIT', 'EV/EBIT (1-t)', 'EV/EBITDA3', 'EV/EBIT4', 'EV/EBIT (1-t)5', 'Current PE', 'Trailing PE', 'Aggregate Mkt Cap/ Net Income (all firms)', 'Aggregate Mkt Cap/ Trailing Net Income (only money making firms)', 'PEG Ratio']
+scaler = MinMaxScaler()
+for col in variables_to_normalize:
+    analysis2[f"Norm {col}"] = scaler.fit_transform(analysis2[[col]])
+    analysis2.drop(columns=[col], inplace=True)
+
+# Define weights for the normalized columns
 weights = {
     "Norm EV/Sales": 0.2,
     "Norm ROE": 0.2,
@@ -323,7 +344,20 @@ weights = {
 # Calculate the weighted sum for normalized_valuation
 analysis2["normalized_valuation"] = sum(analysis2[col] * weight for col, weight in weights.items())
 
-analysis2["normalized_valuation"] = scaler.fit_transform(analysis2[["normalized_valuation"]])
 
-# EXPORTING THE DATASET
-analysis2.to_csv("/Users/jacopobinati/Desktop/damo_DeepLNeural256/dataset/dataset_with_MACRO 3.csv", index=False)
+
+
+# final to be dropped
+columns_to_drop = [
+    "Organization Name URL", "Organization Name", "Growth Category", "IPO Status", "Last Funding Amount Currency", "Top 5 Investors",
+    "Main Industry", "Industry Name", "Headquarters Regions", "Industry Groups", "Most Recent Valuation Range", "Growth Confidence", "Industries",
+    "Headquarters Location", "Company Type", "Acquisition Status", "Last Funding Type", "Funding Status", "Macro Region",
+    "Last Funding Date", "Investor Type", "Founded Date", "Founded Date Precision", "Operating Status", "Actively Hiring", "Investment Stage",
+    "Number of Employees"
+
+    ]
+analysis2 = analysis2.drop(columns=columns_to_drop)
+analysis2["Number of Investments"] = pd.to_numeric(analysis2["Number of Investments"], errors='coerce').astype('Int64')
+
+analysis2.to_excel(r"C:\Users\JacopoBinati\OneDrive - Venionaire Capital\Desktop\crunchbase\dataset.xlsx", index=False)
+analysis2.to_csv(r"C:\Users\JacopoBinati\OneDrive - Venionaire Capital\Desktop\crunchbase\dataset.csv", index=False)
